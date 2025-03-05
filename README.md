@@ -16,7 +16,7 @@ This tool helps automate company research by scraping and analyzing web data abo
 ## How to run
 
 ```bash
-git clone https://github.com/langchain-ai/company-researcher.git
+git clone https://github.com/benjichat/company_researcher_agent.git
 cd company-researcher
 uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
 ```
