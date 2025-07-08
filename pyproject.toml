@@ -1,10 +1,11 @@
 [project]
 name = "company-researcher"
-version = "0.0.1"
-description = "Researcher agent that searches information about a company and returns it in a structured format."
+version = "0.1.0"
+description = "Enhanced researcher agent with Meta Ad Intelligence that searches information about companies and returns structured analysis including advertising intelligence."
 authors = [
     { name = "Vadym Barda" },
-    { name = "Lance Martin" }
+    { name = "Lance Martin" },
+    { name = "Enhanced by Max & Jonas" }
 ]
 readme = "README.md"
 license = { text = "MIT" }
@@ -17,10 +18,35 @@ dependencies = [
     "langchain_anthropic>=0.3.0",
     "langchain_openai",
     "firecrawl-py",
+    # Meta Ad Library API Dependencies
+    "requests>=2.31.0",
+    "aiohttp>=3.9.0",
+    # Data Analysis for Ad Intelligence
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    # Enhanced JSON Schema Validation
+    "jsonschema>=4.17.0",
+    # Better Date/Time Handling for Ad Analysis
+    "python-dateutil>=2.8.0",
+    # Rate Limiting for API Calls
+    "ratelimit>=2.2.1",
+    # Enhanced Error Handling
+    "tenacity>=8.2.0",
 ]
 
 [project.optional-dependencies]
-dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
+dev = [
+    "mypy>=1.11.1", 
+    "ruff>=0.6.1",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0"
+]
+production = [
+    # For real Meta API integration
+    "facebook-business>=19.0.0",
+    "facebook-sdk>=3.1.0"
+]
 
 [build-system]
 requires = ["setuptools>=73.0.0", "wheel"]
@@ -30,7 +56,6 @@ build-backend = "setuptools.build_meta"
 packages = ["agent"]
 [tool.setuptools.package-dir]
 "agent" = "src/agent"
-
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
@@ -48,14 +73,15 @@ lint.select = [
 lint.ignore = [
     "UP006",
     "UP007",
-    # We actually do want to import from typing_extensions
     "UP035",
-    # Relax the convention by _not_ requiring documentation for every function parameter.
     "D417",
     "E501",
 ]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "UP"]
+"src/agent/meta_ad_client.py" = ["D", "T201"]  # Allow print statements in mock client
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
@@ -63,3 +89,10 @@ convention = "google"
 dev = [
     "langgraph-cli[inmem]>=0.1.61",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
