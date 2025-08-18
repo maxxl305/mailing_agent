@@ -1,4 +1,4 @@
-# src/agent/graph.py - Erweitert mit Meta Ad Intelligence
+# src/agent/graph.py - Updated with Intelligent Meta System
 
 import asyncio
 from typing import cast, Any, Literal
@@ -18,11 +18,7 @@ from agent.prompts import (
     REFLECTION_PROMPT,
     INFO_PROMPT,
     COLD_EMAIL_PROMPT,
-    META_AD_ANALYSIS_PROMPT,  # NEU
-)
-from agent.meta_ad_client import (  # NEU
-    MetaAdLibraryMockClient,
-    get_company_ad_intelligence
+    META_AD_ANALYSIS_PROMPT,
 )
 
 load_dotenv()
@@ -57,7 +53,6 @@ class ColdEmailOutput(BaseModel):
         description="Score from 1-10 rating how personalized the email is based on research results for the underlying domain."
     )
 
-# ⭐ NEU: Meta Ad Intelligence Output
 class MetaAdIntelligenceOutput(BaseModel):
     advertising_status: str = Field(description="Current advertising status on Meta platforms")
     active_campaigns_summary: str = Field(description="Summary of active campaigns")
@@ -68,7 +63,7 @@ class MetaAdIntelligenceOutput(BaseModel):
     optimization_opportunities: list[str] = Field(description="Identified optimization opportunities")
     advertising_sophistication_level: str = Field(description="Level of advertising sophistication")
 
-# ✅ COMPANY INFORMATION RESEARCHER (bestehend)
+# Company Information Researcher (unchanged)
 async def company_information_researcher(
     state: OverallState, config: RunnableConfig
 ) -> dict[str, Any]:
@@ -81,8 +76,7 @@ async def company_information_researcher(
     for url in state.urls:
         print(f"📊 Processing URL with crawl mode: {url}")
         
-        # Initialize FireCrawlLoader with crawl mode for comprehensive analysis
-        base_url = url.split('/')[2]  # Extract domain from URL
+        base_url = url.split('/')[2]
         loader = FireCrawlLoader(
             api_key=FIRECRAWL_API_KEY,
             url=f"https://{base_url}",
@@ -90,15 +84,8 @@ async def company_information_researcher(
             params={
                 "limit": 20,
                 "excludes": [
-                    "/docs*",
-                    "/guides*",
-                    "/chains*",
-                    "/blog*",
-                    "*.pdf",
-                    "*.jpg",
-                    "*.png",
-                    "*.gif",
-                    "/networks*"
+                    "/docs*", "/guides*", "/chains*", "/blog*", "*.pdf", 
+                    "*.jpg", "*.png", "*.gif", "/networks*"
                 ],
                 "includes": []
             }
@@ -106,7 +93,6 @@ async def company_information_researcher(
             
         data = loader.load()
         
-        # Combine all page contents
         combined_content = ""
         for page in data:
             if isinstance(page, dict) and "content" in page:
@@ -116,7 +102,6 @@ async def company_information_researcher(
         
         print(f"📄 Crawled {len(data)} pages for {url}")
         
-        # Generate structured notes using the extended marketing analysis schema
         p = INFO_PROMPT.format(
             info=json.dumps(state.extraction_schema, indent=2),
             content=combined_content,
@@ -124,15 +109,10 @@ async def company_information_researcher(
             user_notes=state.user_notes,
         )
         structured_llm = llm.with_structured_output(state.extraction_schema)
-        result = structured_llm.invoke(
-            [
-                {"role": "system", "content": p},
-                {
-                    "role": "user",
-                    "content": "Produce a structured output from this information.",
-                },
-            ]
-        )
+        result = structured_llm.invoke([
+            {"role": "system", "content": p},
+            {"role": "user", "content": "Produce a structured output from this information."},
+        ])
         results[url] = result
 
     return {
@@ -143,85 +123,179 @@ async def company_information_researcher(
         "email_config": getattr(state, 'email_config', None)
     }
 
-# ⭐ NEU: Meta Ad Intelligence Analyzer
+# ⭐ NEW: Intelligent Meta Ad Analyzer
 async def meta_ad_analyzer(
     state: OverallState, config: RunnableConfig
 ) -> dict[str, Any]:
-    """Analyze Meta advertising intelligence for each company URL."""
-    print("🎯 Starting Meta Ad Intelligence Analysis...")
+    """Intelligent Meta Ad Analysis - Real API or clear 'no ads' status."""
+    print("🧠 Starting Intelligent Meta Ad Analysis...")
     
-    # Initialize Mock Client (später echten Client einsetzen)
-    meta_client = MetaAdLibraryMockClient()
+    configuration = Configuration.from_runnable_config(config)
     ad_intelligence_results = {}
     
+    # Import intelligent system
+    from agent.meta_intelligent_hybrid import get_intelligent_meta_analysis
+    
     for url in state.urls:
-        print(f"📱 Analyzing Meta ads for: {url}")
+        print(f"📱 Intelligent Meta analysis for: {url}")
         
         try:
-            # Extract company name from URL for search
-            company_name = url.replace("https://", "").replace("http://", "").split("/")[0].split(".")[0]
+            # Use intelligent analysis
+            meta_result = await get_intelligent_meta_analysis(url)
             
-            # Get raw ad intelligence data
-            raw_ad_data = await get_company_ad_intelligence(
-                company_url=url,
-                company_name=company_name,
-                client=meta_client
-            )
-            
-            # Prepare data for LLM analysis
-            ad_data_summary = {
-                "company_url": url,
-                "advertising_status": raw_ad_data["performance_analysis"]["advertising_status"],
-                "total_ads": raw_ad_data["performance_analysis"].get("total_ads", 0),
-                "active_ads": raw_ad_data["performance_analysis"].get("active_ads", 0),
-                "estimated_spend": raw_ad_data["performance_analysis"].get("estimated_monthly_spend", "Unknown"),
-                "platforms": raw_ad_data["performance_analysis"].get("platform_distribution", {}),
-                "demographics": raw_ad_data["performance_analysis"].get("primary_demographics", {}),
-                "themes": raw_ad_data["performance_analysis"].get("common_themes", []),
-                "sophistication": raw_ad_data["performance_analysis"].get("campaign_sophistication", "unknown"),
-                "raw_ads_sample": raw_ad_data["raw_ads_data"]["data"][:3] if raw_ad_data["raw_ads_data"]["data"] else []
-            }
-            
-            # Use LLM to analyze and structure the ad intelligence
-            ad_analysis_prompt = META_AD_ANALYSIS_PROMPT.format(
-                company_url=url,
-                ad_data=json.dumps(ad_data_summary, indent=2),
-                user_notes=state.user_notes or "No specific notes provided"
-            )
-            
-            structured_llm = llm.with_structured_output(MetaAdIntelligenceOutput)
-            llm_analysis = structured_llm.invoke([
-                {"role": "system", "content": ad_analysis_prompt},
-                {"role": "user", "content": f"Analyze the Meta advertising intelligence for {company_name}"}
-            ])
-            
-            # Combine raw data with LLM analysis
-            ad_intelligence_results[url] = {
-                "llm_analysis": llm_analysis.dict(),
-                "raw_performance_data": raw_ad_data["performance_analysis"],
-                "analysis_timestamp": raw_ad_data["analysis_timestamp"]
-            }
-            
-            print(f"✅ Meta ad analysis completed for {url}")
-            print(f"   Status: {llm_analysis.advertising_status}")
-            print(f"   Sophistication: {llm_analysis.advertising_sophistication_level}")
-            
+            if meta_result["success"]:
+                if meta_result["meta_ads_available"]:
+                    # Company has real Meta ads - do full analysis
+                    print(f"✅ Real Meta ads found for {meta_result['company_name']}")
+                    
+                    analysis = meta_result["analysis"]
+                    
+                    # Prepare data for LLM analysis
+                    ad_data_summary = {
+                        "company_url": url,
+                        "company_name": meta_result["company_name"],
+                        "advertising_status": analysis["advertising_status"],
+                        "total_ads": analysis["total_ads"],
+                        "active_ads": analysis["active_ads"],
+                        "estimated_monthly_spend": analysis["estimated_monthly_spend_eur"],
+                        "campaign_sophistication": analysis["campaign_sophistication"],
+                        "platforms": analysis["platforms"],
+                        "platform_distribution": analysis["platform_distribution"],
+                        "sample_creatives": analysis["sample_creatives"],
+                        "last_activity": analysis["last_ad_activity"],
+                        "data_source": "real_meta_api",
+                        "confidence": analysis["analysis_confidence"]
+                    }
+                    
+                    # LLM Analysis for real data
+                    enhanced_prompt = f"""
+{META_AD_ANALYSIS_PROMPT}
+
+IMPORTANT: This is REAL Meta advertising data from the official Ad Library API.
+Use this authentic data to provide accurate, factual insights about the company's actual advertising strategy.
+
+Data Quality: High - Real API Data
+Confidence Level: {analysis["analysis_confidence"]}
+"""
+                    
+                    ad_analysis_prompt = enhanced_prompt.format(
+                        company_url=url,
+                        ad_data=json.dumps(ad_data_summary, indent=2),
+                        user_notes=state.user_notes or "No specific notes provided"
+                    )
+                    
+                    structured_llm = llm.with_structured_output(MetaAdIntelligenceOutput)
+                    llm_analysis = structured_llm.invoke([
+                        {"role": "system", "content": ad_analysis_prompt},
+                        {"role": "user", "content": f"Analyze the real Meta advertising data for {meta_result['company_name']}"}
+                    ])
+                    
+                    # Store results with real data
+                    ad_intelligence_results[url] = {
+                        "llm_analysis": llm_analysis.dict(),
+                        "raw_performance_data": analysis,
+                        "analysis_timestamp": meta_result["timestamp"],
+                        "api_source": "real_meta_api",
+                        "meta_ads_available": True,
+                        "intelligence_quality": "high",
+                        "company_name": meta_result["company_name"],
+                        "total_relevant_ads": meta_result["total_relevant_ads"]
+                    }
+                    
+                    print(f"   📊 {analysis['total_ads']} ads, {analysis['campaign_sophistication']} sophistication")
+                    print(f"   💰 Est. spend: €{analysis['estimated_monthly_spend_eur']}")
+                    
+                else:
+                    # No relevant Meta ads found - clear status
+                    print(f"📝 No Meta ads found for {meta_result['company_name']}")
+                    
+                    ad_intelligence_results[url] = {
+                        "llm_analysis": {
+                            "advertising_status": "no_meta_advertising",
+                            "active_campaigns_summary": f"{meta_result['company_name']} does not currently run Meta advertising campaigns",
+                            "creative_strategy_analysis": "No Meta advertising activity detected",
+                            "targeting_insights": "Meta advertising analysis not available - no active campaigns found",
+                            "competitive_analysis": "Consider exploring Meta advertising as competitors may be active on these platforms",
+                            "budget_assessment": "No Meta advertising budget detected",
+                            "optimization_opportunities": [
+                                "Explore Meta advertising as a new marketing channel",
+                                "Research competitor presence on Meta platforms",
+                                "Consider starting with small-budget Meta campaigns to test audience response"
+                            ],
+                            "advertising_sophistication_level": "not_applicable"
+                        },
+                        "raw_performance_data": {
+                            "advertising_status": "no_meta_advertising",
+                            "total_ads": 0,
+                            "active_ads": 0,
+                            "platforms": [],
+                            "estimated_monthly_spend": "€0",
+                            "campaign_sophistication": "none"
+                        },
+                        "analysis_timestamp": meta_result["timestamp"],
+                        "api_source": "real_meta_api_search",
+                        "meta_ads_available": False,
+                        "intelligence_quality": "not_applicable",
+                        "company_name": meta_result["company_name"],
+                        "no_ads_message": meta_result["message"],
+                        "recommendation": meta_result.get("recommendation", "")
+                    }
+                    
+                    print(f"   💡 Recommendation: {meta_result.get('recommendation', 'No specific recommendation')}")
+            else:
+                # Analysis failed
+                print(f"❌ Meta analysis failed for {url}: {meta_result.get('message', 'Unknown error')}")
+                
+                ad_intelligence_results[url] = {
+                    "llm_analysis": {
+                        "advertising_status": "analysis_unavailable",
+                        "active_campaigns_summary": "Meta advertising analysis temporarily unavailable",
+                        "creative_strategy_analysis": "Unable to analyze Meta advertising data",
+                        "targeting_insights": "Meta advertising intelligence not available",
+                        "competitive_analysis": "Meta advertising analysis could not be completed",
+                        "budget_assessment": "Meta advertising budget analysis unavailable",
+                        "optimization_opportunities": [
+                            "Retry Meta advertising analysis when service is available",
+                            "Focus on other marketing intelligence sources",
+                            "Consider manual research of competitor Meta presence"
+                        ],
+                        "advertising_sophistication_level": "unknown"
+                    },
+                    "raw_performance_data": {},
+                    "analysis_timestamp": meta_result.get("timestamp"),
+                    "api_source": "error",
+                    "meta_ads_available": False,
+                    "intelligence_quality": "error",
+                    "error_message": meta_result.get("message", "Analysis failed"),
+                    "company_name": url.split("//")[1].split("/")[0] if "//" in url else "Unknown"
+                }
+                
         except Exception as e:
-            print(f"❌ Error analyzing Meta ads for {url}: {str(e)}")
+            print(f"❌ Exception in Meta analysis for {url}: {str(e)}")
+            
             # Graceful fallback
             ad_intelligence_results[url] = {
                 "llm_analysis": {
                     "advertising_status": "analysis_failed",
-                    "active_campaigns_summary": f"Unable to analyze Meta advertising data: {str(e)}",
-                    "creative_strategy_analysis": "Analysis not available",
-                    "targeting_insights": "Analysis not available",
-                    "competitive_analysis": "Analysis not available", 
-                    "budget_assessment": "Analysis not available",
-                    "optimization_opportunities": ["Retry Meta advertising analysis"],
+                    "active_campaigns_summary": f"Meta advertising analysis failed due to technical issues",
+                    "creative_strategy_analysis": "Technical error prevented Meta advertising analysis",
+                    "targeting_insights": "Meta advertising data unavailable due to technical issues",
+                    "competitive_analysis": "Meta advertising analysis could not be completed",
+                    "budget_assessment": "Unable to assess Meta advertising budget",
+                    "optimization_opportunities": [
+                        "Resolve technical issues with Meta advertising analysis",
+                        "Focus on website-based marketing intelligence",
+                        "Consider alternative advertising intelligence sources"
+                    ],
                     "advertising_sophistication_level": "unknown"
                 },
                 "raw_performance_data": {},
-                "analysis_timestamp": None
+                "analysis_timestamp": None,
+                "api_source": "error",
+                "meta_ads_available": False,
+                "intelligence_quality": "error",
+                "error_message": str(e),
+                "company_name": url.split("//")[1].split("/")[0] if "//" in url else "Unknown"
             }
     
     return {
@@ -229,29 +303,30 @@ async def meta_ad_analyzer(
     }
 
 def reflection(state: OverallState) -> dict[str, Any]:
-    """Reflect on the extracted information for each company - with more lenient satisfaction criteria."""
+    """Reflect on the extracted information - updated for intelligent Meta system."""
     print("🤔 Starting reflection...")
     print(f"📧 Email generation flag in reflection: {getattr(state, 'generate_cold_email', False)}")
     
     results = {}
     
     for url in state.urls:
-        # ⭐ NEUE LOGIK: Pragmatische Bewertung statt strenger LLM-Evaluation
         website_data = state.info.get(url, {})
         meta_data = state.meta_ad_intelligence.get(url, {}) if hasattr(state, 'meta_ad_intelligence') else {}
         
-        # Prüfe ob grundlegende Daten vorhanden sind
+        # Basic website data requirements
         has_company_name = bool(website_data.get('company_name'))
         has_basic_info = bool(website_data.get('unique_selling_proposition')) or bool(website_data.get('brand_mission_vision'))
         has_marketing_channels = bool(website_data.get('marketing_channels'))
         has_online_presence = bool(website_data.get('online_marketing_presence'))
-        has_some_meta_data = bool(meta_data)
         
-        # Pragmatische Satisfaction-Kriterien
+        # Meta data availability (but not required for satisfaction)
+        meta_analysis_completed = bool(meta_data)
+        
+        # Satisfaction based primarily on website data
         basic_requirements_met = has_company_name and (has_basic_info or has_marketing_channels)
-        good_data_quality = has_online_presence or has_some_meta_data
+        good_data_quality = has_online_presence
         
-        # Entscheidung: Mehr Fokus auf "brauchbare Daten" statt "vollständige Daten"
+        # Meta analysis is a bonus but not required
         is_satisfactory = basic_requirements_met and good_data_quality
         
         results[url] = is_satisfactory
@@ -261,17 +336,8 @@ def reflection(state: OverallState) -> dict[str, Any]:
         print(f"      Basic Info: {'✅' if has_basic_info else '❌'}")
         print(f"      Marketing Channels: {'✅' if has_marketing_channels else '❌'}")
         print(f"      Online Presence: {'✅' if has_online_presence else '❌'}")
-        print(f"      Meta Data: {'✅' if has_some_meta_data else '❌'}")
+        print(f"      Meta Analysis: {'✅' if meta_analysis_completed else '❌'} (optional)")
         print(f"      → Overall Satisfaction: {'✅' if is_satisfactory else '❌'}")
-        
-        # Zusätzliche Debugging-Info
-        if not is_satisfactory:
-            print(f"      ⚠️  Missing: {', '.join([
-                'Company Name' if not has_company_name else '',
-                'Basic Info' if not has_basic_info else '',
-                'Marketing Data' if not (has_marketing_channels or has_online_presence) else '',
-                'Meta Data' if not has_some_meta_data else ''
-            ]).strip(', ')}")
 
     return {
         "is_satisfactory": results,
@@ -282,8 +348,8 @@ def reflection(state: OverallState) -> dict[str, Any]:
 async def generate_cold_emails(
     state: OverallState, config: RunnableConfig
 ) -> dict[str, Any]:
-    """Generate personalized cold emails based on company research results including Meta ad intelligence."""
-    print("📧 Starting email generation...")
+    """Generate personalized cold emails - updated to handle 'no Meta ads' cases."""
+    print("📧 Starting intelligent email generation...")
     print(f"📊 URLs to process: {state.urls}")
     print(f"🔧 Email config present: {bool(getattr(state, 'email_config', None))}")
     
@@ -298,19 +364,54 @@ async def generate_cold_emails(
     generated_emails = {}
     
     for url, company_data in state.info.items():
-        print(f"📝 Generating email for: {url}")
+        print(f"📝 Generating intelligent email for: {url}")
         
-        # Combine website analysis with Meta ad intelligence
+        # Get Meta intelligence status
+        meta_data = state.meta_ad_intelligence.get(url, {}) if hasattr(state, 'meta_ad_intelligence') else {}
+        meta_ads_available = meta_data.get('meta_ads_available', False)
+        
+        # Enhanced company data with Meta status
         enhanced_company_data = {
             "website_analysis": company_data,
-            "meta_advertising_intelligence": state.meta_ad_intelligence.get(url, {}) if hasattr(state, 'meta_ad_intelligence') else {}
+            "meta_advertising_intelligence": meta_data if meta_ads_available else {
+                "status": "no_meta_advertising",
+                "message": "No Meta advertising campaigns detected for this company",
+                "opportunity": "Potential to start Meta advertising as a new marketing channel"
+            }
         }
         
-        # Format the enhanced company data for the prompt
         company_data_str = json.dumps(enhanced_company_data, indent=2)
         
-        # Create the enhanced prompt
-        email_prompt = COLD_EMAIL_PROMPT.format(
+        # Enhanced email prompt that handles both cases
+        email_language = state.email_config.get("email_language", "deutsch")
+        
+        enhanced_email_prompt = f"""
+{COLD_EMAIL_PROMPT}
+
+⭐ CRITICAL LANGUAGE REQUIREMENT:
+WRITE THE ENTIRE EMAIL IN {email_language.upper()}!
+- Subject line: {email_language}
+- Email body: {email_language} 
+- All content: {email_language}
+- No English phrases or words allowed!
+
+SPECIAL INSTRUCTIONS FOR META ADVERTISING INTELLIGENCE:
+
+Meta Ads Status: {"AVAILABLE - Use real data" if meta_ads_available else "NOT AVAILABLE - Company doesn't run Meta ads"}
+
+{"Use the real Meta advertising data to show specific competitive insights and current campaign analysis." if meta_ads_available else "Focus on the opportunity to START Meta advertising. Position this as an untapped marketing channel with potential for growth."}
+
+Email Strategy:
+{"- Reference their current Meta advertising approach and suggest optimizations" if meta_ads_available else "- Highlight that competitors may be using Meta ads while they're not"}
+{"- Show specific budget and targeting insights" if meta_ads_available else "- Present Meta advertising as a growth opportunity"}
+{"- Competitive analysis based on real advertising data" if meta_ads_available else "- Suggest exploring this new marketing channel"}
+
+⭐ LANGUAGE REMINDER: 
+The user specifically requested the email to be written in {email_language.upper()}. 
+Make sure EVERY SINGLE WORD of the email (subject + body) is in {email_language}!
+"""
+        
+        email_prompt = enhanced_email_prompt.format(
             company_data=company_data_str,
             sender_company=state.email_config.get("sender_company", "Your Company"),
             sender_name=state.email_config.get("sender_name", "Your Name"),
@@ -322,98 +423,90 @@ async def generate_cold_emails(
             user_notes=getattr(state, 'user_notes', "") or "No additional notes provided"
         )
         
-        # Generate structured email output
         structured_llm = llm.with_structured_output(ColdEmailOutput)
         result = structured_llm.invoke([
             {"role": "system", "content": email_prompt},
-            {
-                "role": "user", 
-                "content": f"Generate a personalized cold email for {company_data.get('company_name', url)} using both website and Meta advertising insights"
-            }
+            {"role": "user", "content": f"Generate a personalized cold email for {company_data.get('company_name', url)} considering their Meta advertising status: {'Active' if meta_ads_available else 'Not Active'}. IMPORTANT: Write the ENTIRE email in {email_language.upper()} language - subject line, body, everything must be in {email_language}!"}
         ])
         
-        # Format the final email
+        # Add Meta status to email insights
+        meta_status_insight = "Real Meta advertising data analyzed" if meta_ads_available else "No Meta advertising detected - growth opportunity identified"
+        enhanced_insights = result.key_insights_used + [meta_status_insight]
+        
         formatted_email = f"""Subject: {result.subject_line}
 
 {result.email_body}
 
 ---
 Research Insights Used:
-{chr(10).join(f"• {insight}" for insight in result.key_insights_used)}
+{chr(10).join(f"• {insight}" for insight in enhanced_insights)}
 
+Meta Advertising Status: {"✅ Active (real data)" if meta_ads_available else "❌ Not detected (opportunity)"}
 Personalization Score: {result.personalization_score}/10
 """
         
         generated_emails[url] = formatted_email
-        print(f"✅ Email generated for {url} (Score: {result.personalization_score}/10)")
+        print(f"✅ Email generated for {url} (Score: {result.personalization_score}/10, Meta: {'Real' if meta_ads_available else 'Opportunity'})")
     
     return {"generated_emails": generated_emails}
 
 def route_from_reflection(
     state: OverallState, config: RunnableConfig
 ) -> Literal[END, "company_information_researcher", "meta_ad_analyzer", "generate_cold_emails"]:
-    """Route the graph based on the reflection output - with more pragmatic routing."""
-    print("\n🛤️ Enhanced Routing decision...")
+    """Route the graph based on the reflection output."""
+    print("\n🛤️ Intelligent routing decision...")
     print(f"📧 generate_cold_email: {getattr(state, 'generate_cold_email', False)}")
     print(f"🔧 email_config present: {bool(getattr(state, 'email_config', None))}")
-    print(f"🎯 meta_ad_intelligence present: {hasattr(state, 'meta_ad_intelligence')}")
+    print(f"🧠 meta_ad_intelligence present: {hasattr(state, 'meta_ad_intelligence')}")
     
-    # Get configuration
     configurable = Configuration.from_runnable_config(config)
 
-    # Check if we have basic data for all URLs
     has_basic_data = all(
         bool(state.info.get(url, {}).get('company_name')) 
         for url in state.urls
     ) if state.info else False
     
-    # Check if Meta Ad analysis is missing
-    meta_ad_missing = not hasattr(state, 'meta_ad_intelligence') or not state.meta_ad_intelligence
-    
-    # Check satisfaction status
+    meta_analysis_missing = not hasattr(state, 'meta_ad_intelligence') or not state.meta_ad_intelligence
     all_satisfactory = all(state.is_satisfactory.values()) if state.is_satisfactory else False
     
     print(f"✅ Has basic data: {has_basic_data}")
     print(f"✅ All satisfactory: {all_satisfactory}")
-    print(f"🎯 Meta ad analysis needed: {meta_ad_missing}")
+    print(f"🧠 Meta analysis needed: {meta_analysis_missing}")
 
-    # ⭐ NEUE PRAGMATISCHE ROUTING LOGIC:
-    
-    # 1. If we have basic data but missing Meta Ad analysis, do that first
-    if has_basic_data and meta_ad_missing:
-        print("➡️ Routing to: meta_ad_analyzer (basic data ready, need Meta ads)")
+    # Always do Meta analysis after website analysis
+    if has_basic_data and meta_analysis_missing:
+        print("➡️ Routing to: meta_ad_analyzer (website done, need Meta analysis)")
         return "meta_ad_analyzer"
     
-    # 2. If we have basic data + Meta ads and email is requested, generate email
+    # Generate email if requested and data is ready
     email_requested = getattr(state, 'generate_cold_email', False) and getattr(state, 'email_config', None)
-    if has_basic_data and not meta_ad_missing and email_requested:
-        print("➡️ Routing to: generate_cold_emails (all data ready)")
+    if has_basic_data and not meta_analysis_missing and email_requested:
+        print("➡️ Routing to: generate_cold_emails (all analysis complete)")
         return "generate_cold_emails"
     
-    # 3. If we have basic data and no email needed, end successfully
+    # End if no email requested
     if has_basic_data and not email_requested:
-        print("➡️ Routing to: END (basic data complete, no email needed)")
+        print("➡️ Routing to: END (analysis complete, no email needed)")
         return END
     
-    # 4. If we don't have basic data and haven't hit max reflection steps, try again
+    # Retry website analysis if needed
     current_reflection_steps = max(state.reflection_steps_taken.values()) if state.reflection_steps_taken else 0
     max_steps_reached = current_reflection_steps >= configurable.max_reflection_steps
     
     if not has_basic_data and not max_steps_reached:
-        print("➡️ Routing to: company_information_researcher (need more basic data)")
+        print("➡️ Routing to: company_information_researcher (need more website data)")
         return "company_information_researcher"
     
-    # 5. If we have ANY data and email is requested, try to generate email anyway
+    # Final fallback
     has_any_data = bool(state.info)
     if has_any_data and email_requested:
         print("➡️ Routing to: generate_cold_emails (partial data, try anyway)")
         return "generate_cold_emails"
     
-    # 6. Final fallback - end the process
-    print("➡️ Routing to: END (fallback - process complete)")
+    print("➡️ Routing to: END (process complete)")
     return END
 
-# ✅ ERWEITETER Graph-Aufbau
+# Graph building (unchanged)
 builder = StateGraph(
     OverallState,
     input=InputState,
@@ -421,18 +514,15 @@ builder = StateGraph(
     config_schema=Configuration,
 )
 
-# Nodes hinzufügen
 builder.add_node("company_information_researcher", company_information_researcher)
-builder.add_node("meta_ad_analyzer", meta_ad_analyzer)  # ⭐ NEU
+builder.add_node("meta_ad_analyzer", meta_ad_analyzer)
 builder.add_node("reflection", reflection)
 builder.add_node("generate_cold_emails", generate_cold_emails)
 
-# Edges hinzufügen
 builder.add_edge(START, "company_information_researcher")
 builder.add_edge("company_information_researcher", "reflection")
-builder.add_edge("meta_ad_analyzer", "reflection")  # ⭐ NEU
+builder.add_edge("meta_ad_analyzer", "reflection")
 builder.add_conditional_edges("reflection", route_from_reflection)
 builder.add_edge("generate_cold_emails", END)
 
-# Compile
 graph = builder.compile()

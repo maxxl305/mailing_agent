@@ -1,4 +1,4 @@
-# src/agent/configuration.py - Enhanced with Meta API Configuration
+# src/agent/configuration.py - Updated for Real Meta API
 
 import os
 from dataclasses import dataclass, fields
@@ -12,50 +12,54 @@ class Configuration:
     """The configurable fields for the enhanced chatbot with Meta Ad Intelligence."""
 
     # Existing settings
-    max_search_queries: int = 4  # Max search queries per company
-    max_search_results: int = 3  # Max search results per query
-    max_reflection_steps: int = 0  # Max reflection steps
-    include_search_results: bool = False  # Whether to include search results in the output
+    max_search_queries: int = 4
+    max_search_results: int = 3
+    max_reflection_steps: int = 0
+    include_search_results: bool = False
     
-    # ⭐ NEW: Meta Ad Intelligence Settings
-    enable_meta_ad_analysis: bool = True  # Whether to perform Meta ad analysis
-    meta_api_access_token: Optional[str] = None  # Meta API access token
-    meta_api_version: str = "v18.0"  # Meta API version
-    meta_ad_limit: int = 20  # Max ads to analyze per company
-    meta_countries: list[str] = None  # Countries to search (default: ["DE", "AT", "CH"])
+    # ⭐ UPDATED: Meta Ad Intelligence Settings for Production
+    enable_meta_ad_analysis: bool = True
+    meta_api_access_token: Optional[str] = None
+    meta_api_version: str = "v18.0"
+    meta_ad_limit: int = 50  # Increased for production
+    meta_countries: list[str] = None
     
-    # Rate limiting for Meta API
-    meta_api_rate_limit: int = 150  # Requests per hour (Meta's free tier limit)
-    meta_api_retry_attempts: int = 3  # Number of retry attempts on API errors
+    # Rate limiting for Meta API (Production settings)
+    meta_api_rate_limit: int = 200  # Increased for production
+    meta_api_retry_attempts: int = 3
     
     # Analysis depth settings
-    meta_ad_analysis_depth: str = "standard"  # "basic", "standard", "comprehensive"
-    include_competitor_analysis: bool = True  # Whether to include competitor analysis
-    include_creative_analysis: bool = True  # Whether to analyze ad creatives
+    meta_ad_analysis_depth: str = "standard"
+    include_competitor_analysis: bool = True
+    include_creative_analysis: bool = True
     
-    # Mock/Testing settings
-    use_mock_meta_api: bool = True  # Use mock client instead of real API (for development)
-    mock_data_realism: str = "high"  # "low", "medium", "high" - how realistic should mock data be
+    # ⭐ UPDATED: Production settings (Mock disabled by default)
+    use_mock_meta_api: bool = False  # Changed to False for production
+    mock_data_realism: str = "high"
     
     # Output formatting
-    include_raw_ad_data: bool = False  # Whether to include raw ad data in output
-    meta_analysis_language: str = "de"  # Language for Meta analysis output
+    include_raw_ad_data: bool = False
+    meta_analysis_language: str = "de"
 
     def __post_init__(self):
         """Post-initialization to set defaults and validate settings."""
-        # Set default countries if not provided
+        # Set default countries if not provided (Focus on Germany)
         if self.meta_countries is None:
-            self.meta_countries = ["DE", "AT", "CH"]
+            self.meta_countries = ["DE"]
             
         # Validate analysis depth
         valid_depths = ["basic", "standard", "comprehensive"]
         if self.meta_ad_analysis_depth not in valid_depths:
             self.meta_ad_analysis_depth = "standard"
             
-        # Validate mock data realism
-        valid_realism = ["low", "medium", "high"]
-        if self.mock_data_realism not in valid_realism:
-            self.mock_data_realism = "high"
+        # Auto-detect production vs development
+        if not self.meta_api_access_token:
+            token_from_env = os.getenv("META_API_ACCESS_TOKEN")
+            if not token_from_env:
+                print("⚠️  No Meta API Access Token found - falling back to mock mode")
+                self.use_mock_meta_api = True
+            else:
+                self.meta_api_access_token = token_from_env
 
     @classmethod
     def from_runnable_config(
@@ -76,22 +80,18 @@ class Configuration:
                 
                 # Special handling for different field types
                 if f.name == "meta_countries" and env_value:
-                    # Parse comma-separated country codes from environment
                     values[f.name] = [c.strip().upper() for c in env_value.split(",")]
                 elif f.name.startswith("enable_") or f.name.startswith("include_") or f.name.startswith("use_"):
-                    # Boolean fields
                     if config_value is not None:
                         values[f.name] = config_value
                     elif env_value is not None:
                         values[f.name] = env_value.lower() in ("true", "1", "yes", "on")
                 elif f.name.endswith("_limit") or f.name.endswith("_attempts") or f.name == "max_search_queries":
-                    # Integer fields
                     if config_value is not None:
                         values[f.name] = int(config_value)
                     elif env_value is not None:
                         values[f.name] = int(env_value)
                 else:
-                    # String and other fields
                     if config_value is not None:
                         values[f.name] = config_value
                     elif env_value is not None:
@@ -118,39 +118,33 @@ class Configuration:
             return False
             
         if self.use_mock_meta_api:
-            return True  # Mock API is always available
+            return True
             
         # For real API, check if token is available
         token = self.meta_api_access_token or os.getenv("META_API_ACCESS_TOKEN")
         return token is not None
 
-    def get_analysis_settings(self) -> dict[str, Any]:
-        """Get analysis settings for the Meta ad analyzer."""
-        return {
-            "depth": self.meta_ad_analysis_depth,
-            "include_competitors": self.include_competitor_analysis,
-            "include_creatives": self.include_creative_analysis,
-            "include_raw_data": self.include_raw_ad_data,
-            "language": self.meta_analysis_language,
-        }
+    def validate_meta_setup(self) -> tuple[bool, str]:
+        """Validate Meta API setup."""
+        if not self.enable_meta_ad_analysis:
+            return False, "Meta ad analysis is disabled"
+        
+        if self.use_mock_meta_api:
+            return True, "Using Mock API (development mode)"
+        
+        token = self.meta_api_access_token or os.getenv("META_API_ACCESS_TOKEN")
+        if not token:
+            return False, "Meta API Access Token missing"
+        
+        if len(token) < 50:
+            return False, "Meta API Access Token appears invalid (too short)"
+        
+        return True, f"Meta API configured for production (v{self.meta_api_version})"
 
 
-# ⭐ NEW: Environment Configuration Helper
-class EnvironmentConfig:
-    """Helper class for managing environment configuration."""
-    
-    @staticmethod
-    def setup_development_env():
-        """Setup development environment with mock settings."""
-        os.environ.update({
-            "USE_MOCK_META_API": "true",
-            "MOCK_DATA_REALISM": "high",
-            "ENABLE_META_AD_ANALYSIS": "true",
-            "META_AD_ANALYSIS_DEPTH": "comprehensive",
-            "META_COUNTRIES": "DE,AT,CH",
-            "INCLUDE_COMPETITOR_ANALYSIS": "true",
-            "INCLUDE_CREATIVE_ANALYSIS": "true",
-        })
+# ⭐ NEW: Production Environment Helper
+class ProductionConfig:
+    """Helper for production Meta API setup."""
     
     @staticmethod
     def setup_production_env(meta_access_token: str):
@@ -160,47 +154,26 @@ class EnvironmentConfig:
             "USE_MOCK_META_API": "false",
             "ENABLE_META_AD_ANALYSIS": "true",
             "META_AD_ANALYSIS_DEPTH": "standard",
-            "META_COUNTRIES": "DE,AT,CH,US,GB",
+            "META_COUNTRIES": "DE",
             "META_API_RATE_LIMIT": "200",
+            "META_AD_LIMIT": "50",
             "INCLUDE_RAW_AD_DATA": "false",
         })
     
     @staticmethod
-    def validate_meta_api_setup() -> tuple[bool, str]:
-        """Validate Meta API setup and return status."""
+    def validate_production_setup() -> tuple[bool, str]:
+        """Validate production Meta API setup."""
         config = Configuration.from_runnable_config()
-        
-        if not config.enable_meta_ad_analysis:
-            return False, "Meta ad analysis is disabled in configuration"
-        
-        if config.use_mock_meta_api:
-            return True, "Using mock Meta API (development mode)"
-        
-        token = config.meta_api_access_token or os.getenv("META_API_ACCESS_TOKEN")
-        if not token:
-            return False, "Meta API access token not found. Set META_API_ACCESS_TOKEN environment variable or use mock mode."
-        
-        return True, f"Meta API configured for production (version {config.meta_api_version})"
+        return config.validate_meta_setup()
 
 
-# Test configuration validation
+# Test configuration
 if __name__ == "__main__":
-    # Test configuration loading
-    print("🔧 Testing Enhanced Configuration...")
+    print("🔧 Testing Production Meta API Configuration...")
     
-    # Test development setup
-    EnvironmentConfig.setup_development_env()
-    dev_config = Configuration.from_runnable_config()
-    print(f"📊 Development Config:")
-    print(f"   Meta Ad Analysis: {dev_config.enable_meta_ad_analysis}")
-    print(f"   Using Mock API: {dev_config.use_mock_meta_api}")
-    print(f"   Analysis Depth: {dev_config.meta_ad_analysis_depth}")
-    print(f"   Countries: {dev_config.meta_countries}")
+    config = Configuration.from_runnable_config()
+    is_valid, message = config.validate_meta_setup()
     
-    # Test validation
-    is_valid, message = EnvironmentConfig.validate_meta_api_setup()
     print(f"✅ Validation: {message}")
-    
-    # Test Meta API config
-    meta_config = dev_config.get_meta_api_config()
-    print(f"🎯 Meta API Config: {meta_config}")
+    print(f"🎯 Use Mock: {config.use_mock_meta_api}")
+    print(f"📊 Meta Config: {config.get_meta_api_config()}")

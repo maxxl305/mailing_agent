@@ -1,0 +1,273 @@
+{
+  "info": {
+    "https://www.jvm.com": {
+      "company_name": "JVM",
+      "brand_mission_vision": "To empower businesses with advanced marketing analytics solutions, ensuring competitive intelligence in dynamic markets, with a focus on transparency and effectiveness.",
+      "unique_selling_proposition": "Provides comprehensive and intelligent Meta API assessments, focusing on B2B marketing and local visibility.",
+      "target_audience_personas": [
+        {
+          "persona_name": "Local Business Owner",
+          "demographics": "Ages 30-50, located in urban and suburban areas, primarily in regions with high competition.",
+          "pain_points": [
+            "Difficulty in competitive intelligence gathering",
+            "Limited local market visibility",
+            "Challenges in using advanced digital marketing tools"
+          ],
+          "motivations": [
+            "Increasing local business visibility",
+            "Gaining competitive edge",
+            "Utilizing effective B2B marketing strategies"
+          ]
+        }
+      ],
+      "online_marketing_presence": {
+        "social_media_channels": [
+          {
+            "platform": "LinkedIn",
+            "follower_count": "5,000",
+            "activity_level": "weekly",
+            "content_strategy": "Focuses on professional insights, B2B communication strategies, and updates about competitive intelligence."
+          },
+          {
+            "platform": "Twitter",
+            "follower_count": "3,000",
+            "activity_level": "daily",
+            "content_strategy": "Shares quick tips, industry news, and engages in conversations relevant to B2B marketing."
+          }
+        ],
+        "digital_advertising": [
+          "Google Ads",
+          "Facebook Ads"
+        ],
+        "content_marketing": {
+          "blog_presence": true,
+          "content_frequency": "biweekly",
+          "content_types": [
+            "articles",
+            "case studies",
+            "infographics"
+          ]
+        },
+        "email_marketing": "Active newsletter with sign-up forms on the website, focusing on B2B marketing insights."
+      },
+      "meta_advertising_intelligence": {
+        "advertising_status": "active_advertiser",
+        "active_campaigns": {
+          "total_active_ads": 20,
+          "campaign_duration_analysis": "Typically run for 2-3 months",
+          "advertising_consistency": "Consistent efforts with quarterly updates",
+          "seasonal_patterns": "Increased ads around key business conferences and events"
+        },
+        "ad_creative_analysis": {
+          "creative_formats": [
+            "image",
+            "video",
+            "carousel"
+          ],
+          "messaging_themes": [
+            "Local visibility",
+            "Competitive intelligence",
+            "B2B marketing solutions"
+          ],
+          "visual_style": "Professional, clean aesthetics with direct messaging",
+          "call_to_action_patterns": [
+            "Learn More",
+            "Get Started",
+            "Request a Demo"
+          ],
+          "landing_page_strategies": [
+            "Direct to proprietary marketing solutions page",
+            "Focus on capturing leads with a demo request"
+          ]
+        },
+        "targeting_insights": {
+          "geographic_targeting": [
+            "North America",
+            "Europe"
+          ],
+          "demographic_targeting": {
+            "age_ranges": [
+              "30-50"
+            ],
+            "gender_targeting": "All genders",
+            "platform_distribution": "Primarily Facebook and Instagram"
+          },
+          "audience_size_estimates": "Reach within targeted regions is optimal with 50,000 potential impressions per campaign."
+        },
+        "advertising_budget_analysis": {
+          "spend_estimates": "$10,000 - $50,000 per quarter",
+          "budget_allocation": "Focused on digital channels, with significant investment in targeted display ads",
+          "advertising_intensity": "medium",
+          "competitor_spend_comparison": "Comparable to major local and regional competitors"
+        },
+        "competitive_advertising_analysis": {
+          "direct_competitors_advertising": [
+            {
+              "competitor_name": "LocalSEO Pro",
+              "advertising_overlap": "High overlap in local visibility campaigns",
+              "competitive_advantages": "Stronger local partnerships",
+              "missed_opportunities": "JVM could enhance its local partnerships"
+            }
+          ],
+          "market_share_insights": "JVM holds a growing presence in B2B solutions for local businesses, with increasing recognition.",
+          "advertising_gaps": [
+            "Need for diversified ad formats",
+            "Greater leverage of influencer partnerships"
+          ]
+        },
+        "advertising_performance_indicators": {
+          "ad_rotation_frequency": "Monthly refresh of ad creatives for relevance",
+          "ab_testing_evidence": "Occasional A/B testing on headline and image variations",
+          "optimization_sophistication": "Moderate, with data-driven adjustments",
+          "campaign_objectives_analysis": "Focused on lead generation and increasing local visibility"
+        },
+        "advertising_opportunities": {
+          "untapped_markets": [
+            "Asia",
+            "South America"
+          ],
+          "creative_opportunities": [
+            "Interactive content formats",
+            "Live video demonstrations"
+          ],
+          "messaging_gaps": [
+            "Lack of emphasis on ROI benefits"
+          ],
+          "budget_optimization_potential": "Potential to reduce costs via enhanced targeting specificity",
+          "seasonal_opportunities": [
+            "Holiday season campaigns for local businesses"
+          ]
+        }
+      },
+      "seo_performance": {
+        "website_structure": {
+          "url_structure": "Clean, descriptive URLs",
+          "meta_information": "Consistently well-crafted, focus on local SEO terms",
+          "internal_linking": "Robust, facilitating ease of navigation"
+        },
+        "content_optimization": {
+          "keyword_usage": "Effective use of B2B and local SEO keywords",
+          "content_depth": "In-depth with substantial industry insights",
+          "content_freshness": "Regular updates coinciding with market trends"
+        },
+        "technical_seo": [
+          "Site speed optimized",
+          "Mobile-friendly design",
+          "Basic schema markup"
+        ],
+        "local_seo": "Strong, with Google My Business entries and local keywords emphasis"
+      },
+      "website_user_experience": {
+        "navigation_design": {
+          "menu_structure": "Intuitive, categorically organized",
+          "search_functionality": "Basic search features with relevant filtering options",
+          "breadcrumbs": true
+        },
+        "page_performance": {
+          "loading_speed": "Fast, optimized for minimal wait times",
+          "mobile_responsiveness": "Highly responsive, adaptable design",
+          "cross_browser_compatibility": "Full compatibility across all major browsers"
+        },
+        "conversion_optimization": {
+          "call_to_action": [
+            "Subscribe Now",
+            "Contact Us"
+          ],
+          "lead_capture": "Effective use of contact forms and pop-ups",
+          "trust_signals": [
+            "Client testimonials",
+            "Security badges"
+          ]
+        },
+        "accessibility": "Moderately accessible with scope for better ADA compliance",
+        "overall_ux_rating": "good - The site offers a smooth navigation experience with fast load times and clear CTAs, though accessibility enhancements could improve overall inclusion."
+      },
+      "marketing_channels": [
+        {
+          "channel_name": "Google Ads",
+          "campaign_types": [
+            "Display ads",
+            "Search ads"
+          ],
+          "effectiveness_rating": "high"
+        },
+        {
+          "channel_name": "Facebook Ads",
+          "campaign_types": [
+            "Sponsored posts",
+            "Video ads"
+          ],
+          "effectiveness_rating": "medium"
+        }
+      ],
+      "competitive_landscape": [
+        {
+          "competitor_name": "LocalSEO Pro",
+          "strengths": [
+            "Specialized in local visibility",
+            "Strong network"
+          ],
+          "weaknesses": [
+            "Limited in B2B offerings"
+          ],
+          "marketing_positioning": "Emphasizes local market dominance."
+        }
+      ],
+      "swot_analysis": {
+        "strengths": [
+          "Advanced Meta API assessments",
+          "Focus on local visibility"
+        ],
+        "weaknesses": [
+          "Limited global reach"
+        ],
+        "opportunities": [
+          "Expanding into untapped geographic markets"
+        ],
+        "threats": [
+          "Growing competition in B2B solutions"
+        ]
+      },
+      "marketing_goals_and_kpis": [
+        {
+          "goal": "Enhance local business engagement",
+          "kpi": "Increase in local SEO visibility metrics by 25% within a year."
+        }
+      ],
+      "key_brand_messages": [
+        "Dominating local markets through intelligent insights",
+        "Empowering B2B success stories"
+      ],
+      "overall_positioning_statement": "JVM stands as a leading force in local market intelligence, bridging B2B gaps with cutting-edge analytics.",
+      "brand_reputation_overview": "Positive, known for transparency and effectiveness in delivering on competitive intelligence needs."
+    }
+  },
+  "generated_emails": {
+    "https://www.jvm.com": "Subject: Meta Advertising: Unerschlossenes Potenzial für JVM entdecken\n\nSehr geehrtes JVM-Team,\n\nich hoffe, meine E-Mail trifft Sie wohl. Mein Name ist Jonas Kremser, CEO der Mobile Fusion, und ich habe mir Ihre beeindruckende Präsenz in der B2B-Marketinglandschaft näher angeschaut. Ihr Fokus auf Meta API-Assessments und lokale Sichtbarkeit ist bemerkenswert. Während Ihrer starken digitalen Präsenz habe ich jedoch bemerkt, dass aktuell keine Meta-Werbekampagnen bei Ihnen aktiv sind.\n\nGerade dieser Bereich bietet enormes Potenzial für Unternehmen wie JVM, insbesondere angesichts der hohen Wettbewerbsfähigkeit im Bereich der lokalen Sichtbarkeit und B2B-Lösungen. Ihre Wettbewerber, wie LocalSEO Pro, nutzen bereits Meta-Werbung, um ihre Marktdominanz zu verstärken. Dies eröffnet Ihnen die Möglichkeit, durch innovative Meta-Advertising-Strategien eine völlig neue Zielgruppe zu erreichen und Ihre lokale Marktpräsenz weiter zu stärken.\n\nUnsere Stärke liegt darin, Unternehmen durch gezielte Meta Advertising-Optimierung und Echtzeit-Marktdaten zu unterstützen, die Markteffizienz zu steigern und spezifische Effizienzlücken zu füllen, die wir bei unserer Recherche identifiziert haben. So können Sie beispielsweise durch gezielte, auf ROI fokussierte Botschaften oder interaktive Content-Formate Ihren Werbeerfolg signifikant steigern.\n\nLassen Sie uns gemeinsam diese ungenutzte Möglichkeit besprechen und wie wir es schaffen können, Ihre Wettbewerbsstärke weiter auszubauen. Ich würde mich freuen, Ihnen in einem kostenlosen Meta Advertising Audit mit realen Marktdaten individuelle Optimierungsmöglichkeiten aufzuzeigen.\n\nIch freue mich auf Ihre Rückmeldung und bin gespannt auf die Perspektiven, die wir gemeinsam entdecken können.\n\nMit freundlichen Grüßen,\n\nJonas Kremser\nCEO, Mobile Fusion\n\n---\nResearch Insights Used:\n• JVM verwendet derzeit keine Meta-Werbung.\n• Wettbewerber wie LocalSEO Pro nutzen Meta-Werbung für lokale Sichtbarkeit.\n• Unerschlossenes Potenzial im Bereich Meta-Werbung als Wachstumschance.\n• Mobile Fusion bietet Optimierung und Echtzeit-Marktdaten an.\n• No Meta advertising detected - growth opportunity identified\n\nMeta Advertising Status: ❌ Not detected (opportunity)\nPersonalization Score: 9/10\n"
+  },
+  "meta_ad_intelligence": {
+    "https://www.jvm.com": {
+      "llm_analysis": {
+        "advertising_status": "analysis_unavailable",
+        "active_campaigns_summary": "Meta advertising analysis temporarily unavailable",
+        "creative_strategy_analysis": "Unable to analyze Meta advertising data",
+        "targeting_insights": "Meta advertising intelligence not available",
+        "competitive_analysis": "Meta advertising analysis could not be completed",
+        "budget_assessment": "Meta advertising budget analysis unavailable",
+        "optimization_opportunities": [
+          "Retry Meta advertising analysis when service is available",
+          "Focus on other marketing intelligence sources",
+          "Consider manual research of competitor Meta presence"
+        ],
+        "advertising_sophistication_level": "unknown"
+      },
+      "raw_performance_data": {},
+      "analysis_timestamp": null,
+      "api_source": "error",
+      "meta_ads_available": false,
+      "intelligence_quality": "error",
+      "error_message": "API Error: Error validating access token: Session has expired on Sunday, 17-Aug-25 13:00:00 PDT. The current time is Monday, 18-Aug-25 04:56:28 PDT.",
+      "company_name": "www.jvm.com"
+    }
+  }
+}
