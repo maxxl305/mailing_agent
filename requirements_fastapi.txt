@@ -1,0 +1,16 @@
+# requirements_fastapi.txt - Zusätzliche Dependencies für FastAPI Frontend
+
+# Bestehende Dependencies bleiben (aus pyproject.toml)
+# Zusätzliche FastAPI Dependencies:
+
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+python-multipart>=0.0.6
+
+# Export Libraries
+reportlab>=4.0.7
+python-docx>=1.1.0
+
+# Utility
+python-dotenv>=1.0.0
