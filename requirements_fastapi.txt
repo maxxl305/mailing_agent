@@ -1,4 +1,4 @@
-# requirements_fastapi.txt - Zusätzliche Dependencies für FastAPI Frontend
+# requirements_fastapi.txt - Dependencies für FastAPI Frontend + Echte Meta API
 
 # Bestehende Dependencies bleiben (aus pyproject.toml)
 # Zusätzliche FastAPI Dependencies:
@@ -11,6 +11,11 @@ python-multipart>=0.0.6
 # Export Libraries
 reportlab>=4.0.7
 python-docx>=1.1.0
+
+# Real Meta API
+facebook-business>=19.0.0
+aiohttp>=3.9.0
+tenacity>=8.2.0
 
 # Utility
 python-dotenv>=1.0.0

@@ -1,4 +1,4 @@
-# app.py - FastAPI Backend für Company Research Tool
+# app.py - FastAPI Backend für Company Research Tool (Final Version)
 
 import asyncio
 import json
@@ -31,8 +31,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Company Research Tool", version="1.0.0")
-
-# No static files needed - everything is embedded
 
 # In-memory storage für aktive Jobs (in production: Redis/DB)
 active_jobs: Dict[str, Dict[str, Any]] = {}
@@ -146,6 +144,16 @@ async def run_research_analysis(job_id: str, request: ResearchRequest):
         
         update_job_progress(job_id, "generating_emails", 85, "E-Mails werden generiert...")
         
+        # Check for Meta API warnings to inform user
+        meta_warnings = []
+        for url, meta_data in result.get('meta_ad_intelligence', {}).items():
+            api_status = meta_data.get('api_status', 'unknown')
+            if api_status in ['no_token', 'error', 'failed']:
+                meta_warnings.append(f"Meta API für {url}: {api_status}")
+        
+        if meta_warnings:
+            result['meta_api_warnings'] = meta_warnings
+        
         update_job_progress(job_id, "completed", 100, "Analyse abgeschlossen!", result)
         
     except Exception as e:
@@ -158,7 +166,7 @@ async def run_research_analysis(job_id: str, request: ResearchRequest):
         
         if "META_API" in error_message or "Token" in error_message:
             error_category = "Meta API Konfigurationsfehler"
-            error_message = "Meta API Token ist ungültig oder abgelaufen. Bitte überprüfen Sie Ihre .env Datei."
+            error_message = "Meta API Token ist ungültig oder abgelaufen. Website-Analyse läuft weiter."
             error_details = f"Ursprünglicher Fehler: {str(e)}"
         elif "FIRECRAWL" in error_message or "crawl" in error_message.lower():
             error_category = "Website-Crawling Fehler"
@@ -202,6 +210,7 @@ async def read_root():
             .result-section { margin-top: 20px; }
             .company-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
             .export-buttons { margin-top: 15px; }
+            .meta-warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0; }
         </style>
     </head>
     <body>
@@ -244,7 +253,7 @@ async def read_root():
                         
                         <div class="mt-3">
                             <label for="userNotes" class="form-label">Zusätzliche Notizen</label>
-                            <textarea class="form-control" id="userNotes" rows="2" placeholder="Fokus auf digitales Marketing..."></textarea>
+                            <textarea class="form-control" id="userNotes" rows="2" placeholder="Fokus auf SEO und Meta Advertising..."></textarea>
                         </div>
                         
                         <button type="submit" class="btn btn-primary mt-3">🚀 Analyse starten</button>
@@ -273,6 +282,13 @@ async def read_root():
                         </div>
                         <button class="btn btn-outline-danger btn-sm mt-2" onclick="showErrorDetails()">Details anzeigen</button>
                         <button class="btn btn-primary btn-sm mt-2 ms-2" onclick="resetForm()">Neue Analyse starten</button>
+                    </div>
+                    
+                    <!-- Meta API Warning -->
+                    <div id="metaWarning" class="meta-warning" style="display: none;">
+                        <h6>⚠️ Meta API Hinweis:</h6>
+                        <p id="metaWarningText"></p>
+                        <small>Website-Analyse und E-Mail-Generierung funktionieren trotzdem.</small>
                     </div>
                 </div>
             </div>
@@ -339,6 +355,7 @@ async def read_root():
                     document.getElementById('progressSection').style.display = 'block';
                     document.getElementById('resultsSection').style.display = 'none';
                     document.getElementById('errorAlert').style.display = 'none';
+                    document.getElementById('metaWarning').style.display = 'none';
                     
                     // Reset progress bar
                     document.getElementById('progressBar').className = 'progress-bar';
@@ -389,6 +406,12 @@ async def read_root():
                 if (data.status === 'completed') {
                     progressBar.className = 'progress-bar bg-success';
                     currentResults = data.results;
+                    
+                    // Check for Meta API warnings
+                    if (data.results && data.results.meta_api_warnings) {
+                        showMetaWarning(data.results.meta_api_warnings);
+                    }
+                    
                     showResults(data.results);
                 } else if (data.status === 'error') {
                     progressBar.className = 'progress-bar bg-danger';
@@ -398,6 +421,15 @@ async def read_root():
                         data.error_details || null
                     );
                 }
+            }
+            
+            // Show Meta API warning
+            function showMetaWarning(warnings) {
+                const warningDiv = document.getElementById('metaWarning');
+                const warningText = document.getElementById('metaWarningText');
+                
+                warningText.textContent = warnings.join(', ');
+                warningDiv.style.display = 'block';
             }
             
             // Show error function
@@ -452,6 +484,7 @@ async def read_root():
                 document.getElementById('progressSection').style.display = 'none';
                 document.getElementById('resultsSection').style.display = 'none';
                 document.getElementById('errorAlert').style.display = 'none';
+                document.getElementById('metaWarning').style.display = 'none';
                 document.getElementById('progressBar').className = 'progress-bar';
                 document.getElementById('progressBar').style.width = '0%';
                 document.getElementById('progressBar').textContent = '0%';
@@ -485,11 +518,17 @@ async def read_root():
                     html += '<h6>📱 Meta Ad Intelligence:</h6>';
                     for (const [url, data] of Object.entries(results.meta_ad_intelligence)) {
                         const llm = data.llm_analysis || {};
+                        const apiStatus = data.api_status || 'unknown';
+                        const statusBadge = apiStatus === 'success' ? 'badge bg-success' : 
+                                          apiStatus === 'error' ? 'badge bg-warning' : 
+                                          'badge bg-secondary';
+                        
                         html += `
                             <div class="company-card">
-                                <p><strong>Status:</strong> ${llm.advertising_status || 'N/A'}</p>
-                                <p><strong>Budget:</strong> ${llm.budget_assessment || 'N/A'}</p>
-                                <p><strong>Opportunities:</strong> ${(llm.optimization_opportunities || []).slice(0,2).join(', ')}</p>
+                                <p><strong>API Status:</strong> <span class="${statusBadge}">${apiStatus}</span></p>
+                                <p><strong>Advertising Status:</strong> ${llm.advertising_status || 'N/A'}</p>
+                                <p><strong>Budget Assessment:</strong> ${llm.budget_assessment || 'N/A'}</p>
+                                <p><strong>Top Opportunities:</strong> ${(llm.optimization_opportunities || []).slice(0,2).join(', ')}</p>
                             </div>
                         `;
                     }
@@ -595,6 +634,13 @@ async def export_pdf(job_id: str):
             story.append(Paragraph(f"<b>Company: {data.get('company_name', 'Unknown')}</b>", styles['Heading2']))
             story.append(Paragraph(f"URL: {url}", styles['Normal']))
             story.append(Paragraph(f"USP: {data.get('unique_selling_proposition', 'N/A')}", styles['Normal']))
+            
+            # Add Meta API status if available
+            meta_data = results.get("meta_ad_intelligence", {}).get(url, {})
+            if meta_data:
+                api_status = meta_data.get("api_status", "unknown")
+                story.append(Paragraph(f"Meta API Status: {api_status}", styles['Normal']))
+            
             story.append(Spacer(1, 12))
     
     doc.build(story)
@@ -618,6 +664,17 @@ async def export_word(job_id: str):
             doc.add_heading(f"Company: {data.get('company_name', 'Unknown')}", level=1)
             doc.add_paragraph(f"URL: {url}")
             doc.add_paragraph(f"USP: {data.get('unique_selling_proposition', 'N/A')}")
+            
+            # Add Meta API info
+            meta_data = results.get("meta_ad_intelligence", {}).get(url, {})
+            if meta_data:
+                doc.add_heading("Meta Advertising Intelligence:", level=2)
+                api_status = meta_data.get("api_status", "unknown")
+                doc.add_paragraph(f"API Status: {api_status}")
+                
+                llm_analysis = meta_data.get("llm_analysis", {})
+                if llm_analysis.get("advertising_status"):
+                    doc.add_paragraph(f"Advertising Status: {llm_analysis['advertising_status']}")
             
             # Add email if available
             if results.get("generated_emails", {}).get(url):
